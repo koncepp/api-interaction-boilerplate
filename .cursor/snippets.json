@@ -1,0 +1,41 @@
+{
+  "API Fetch": {
+    "prefix": "apifetch",
+    "body": [
+      "const response = await fetch('${1:url}', {",
+      "  method: '${2:GET}',",
+      "  headers: {",
+      "    'Content-Type': 'application/json'",
+      "  }",
+      "});",
+      "",
+      "if (!response.ok) {",
+      "  throw new Error(`HTTP error! status: ${response.status}`);",
+      "}",
+      "",
+      "const data = await response.json();",
+      "return data;"
+    ],
+    "description": "Basic API fetch with error handling"
+  },
+  "API POST Request": {
+    "prefix": "apipost",
+    "body": [
+      "const response = await fetch('${1:url}', {",
+      "  method: 'POST',",
+      "  headers: {",
+      "    'Content-Type': 'application/json'",
+      "  },",
+      "  body: JSON.stringify(${2:data})",
+      "});",
+      "",
+      "if (!response.ok) {",
+      "  throw new Error(`HTTP error! status: ${response.status}`);",
+      "}",
+      "",
+      "const data = await response.json();",
+      "return data;"
+    ],
+    "description": "POST request with JSON body"
+  }
+} 
