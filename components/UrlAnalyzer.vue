@@ -78,18 +78,31 @@ const error = ref('')
 const result = ref(null)
 
 const analyzeUrl = async () => {
+    if (!url.value) {
+        error.value = 'Please enter a URL'
+        return
+    }
+
     isLoading.value = true
     error.value = ''
     result.value = null
 
     try {
+        // Validate URL format
+        try {
+            new URL(url.value)
+        } catch {
+            throw new Error('Please enter a valid URL (include http:// or https://)')
+        }
+
         const response = await $fetch('/api/analyze-url', {
             method: 'POST',
             body: { url: url.value }
         })
         result.value = response
-    } catch (err) {
-        error.value = err.message || 'An error occurred while analyzing the URL'
+    } catch (err: any) {
+        error.value = err.data?.message || err.message || 'An error occurred while analyzing the URL'
+        console.error('Error:', err)
     } finally {
         isLoading.value = false
     }
@@ -131,8 +144,16 @@ const analyzeUrl = async () => {
 }
 
 .error-message {
-    color: red;
+    color: #dc2626;
+    background-color: #fee2e2;
+    padding: 1rem;
+    border-radius: 0.375rem;
     margin-bottom: 1rem;
+    border: 1px solid #fecaca;
+}
+
+.url-input:invalid {
+    border-color: #dc2626;
 }
 
 .result {

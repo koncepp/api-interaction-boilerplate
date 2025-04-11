@@ -1,6 +1,18 @@
 import * as cheerio from 'cheerio'
 
 export default defineEventHandler(async (event) => {
+  // Set CORS headers
+  setResponseHeaders(event, {
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type'
+  })
+
+  // Handle OPTIONS request for CORS preflight
+  if (event.method === 'OPTIONS') {
+    return 'OK'
+  }
+
   const body = await readBody(event)
   const { url } = body
 
@@ -12,11 +24,12 @@ export default defineEventHandler(async (event) => {
   }
 
   try {
-    // Fetch the URL content
+    // Fetch the URL content with a timeout
     const response = await $fetch(url, {
       headers: {
         'User-Agent': 'Mozilla/5.0 (compatible; KonceppBot/1.0; +http://koncepp.com)'
-      }
+      },
+      timeout: 10000 // 10 second timeout
     })
 
     // Load the HTML into Cheerio
@@ -75,9 +88,10 @@ export default defineEventHandler(async (event) => {
       }
     }
   } catch (error: any) {
+    console.error('Error analyzing URL:', error)
     throw createError({
       statusCode: 500,
-      message: error.message || 'Error analyzing URL'
+      message: error.message || 'Error analyzing URL. Please make sure the URL is accessible and try again.'
     })
   }
 }) 
