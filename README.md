@@ -1,4 +1,4 @@
-# API Interaction Boilerplate
+# URL Analyzer
 
 A simple Nuxt.js boilerplate demonstrating frontend to backend API interaction. This project showcases how to create a basic web application that can analyze URLs and return information about them.
 
