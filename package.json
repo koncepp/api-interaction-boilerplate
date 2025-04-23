@@ -1,19 +1,24 @@
 {
-  "name": "nuxt-app",
+  "name": "url-analyzer",
   "private": true,
   "type": "module",
+  "packageManager": "bun@1.0.26",
   "scripts": {
     "build": "nuxt build",
     "dev": "nuxt dev",
     "generate": "nuxt generate",
     "preview": "nuxt preview",
-    "postinstall": "nuxt prepare"
+    "postinstall": "nuxt prepare",
+    "lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts --fix --ignore-path .gitignore"
   },
   "dependencies": {
-    "@types/cheerio": "^0.22.35",
+    "@nuxt/ui": "^2.12.1",
     "cheerio": "^1.0.0",
-    "nuxt": "^3.16.2",
-    "vue": "^3.5.13",
-    "vue-router": "^4.5.0"
+    "nuxt": "^3.16.2"
+  },
+  "devDependencies": {
+    "@nuxtjs/eslint-config-typescript": "^12.1.0",
+    "eslint": "^8.56.0",
+    "eslint-plugin-vue": "^9.21.1"
   }
 }

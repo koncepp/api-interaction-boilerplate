@@ -1,1 +1,14 @@
+# Allow all crawlers
+User-agent: *
+Allow: /
 
+# Disallow development and admin routes
+Disallow: /_nuxt/
+Disallow: /.nuxt/
+Disallow: /api/
+Disallow: /admin/
+
+# Sitemap location (if you have one)
+# Sitemap: https://your-domain.com/sitemap.xml
+
+# Crawl-delay: 10

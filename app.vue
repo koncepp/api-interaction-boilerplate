@@ -1,11 +1,18 @@
 <template>
-  <div>
+  <UContainer>
     <UrlAnalyzer />
-  </div>
+  </UContainer>
 </template>
 
 <script setup lang="ts">
-// No additional setup needed
+import UrlAnalyzer from './components/UrlAnalyzer.vue'
+
+useHead({
+  link: [
+    { rel: 'icon', type: 'image/svg+xml', href: '/favicon.svg' },
+    { rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' }
+  ]
+})
 </script>
 
 <style>

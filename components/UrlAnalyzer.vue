@@ -1,240 +1,172 @@
 <template>
-    <div class="url-analyzer">
-        <h1>URL Analyzer</h1>
-        <form @submit.prevent="analyzeUrl" class="url-form">
-            <input v-model="url" type="url" placeholder="Enter a URL to analyze" required class="url-input" />
-            <button type="submit" :disabled="isLoading" class="submit-button">
-                {{ isLoading ? 'Analyzing...' : 'Analyze' }}
-            </button>
+  <UContainer class="py-12">
+    <div class="max-w-4xl mx-auto">
+      <div class="text-center mb-12">
+        <h1 class="text-5xl font-bold mb-4 text-gray-900">
+          URL Analyzer
+        </h1>
+        <p class="text-xl text-gray-800">
+          Enter a URL to analyze its content and structure
+        </p>
+      </div>
+
+      <UCard class="mb-8 shadow-lg">
+        <template #header>
+          <div class="flex items-center gap-2">
+            <UIcon name="i-heroicons-link" class="text-gray-600 dark:text-gray-300" />
+            <h2 class="text-xl font-semibold text-gray-900 dark:text-white">
+              Analyze URL
+            </h2>
+          </div>
+        </template>
+        <form @submit.prevent="analyzeUrl">
+          <UFormGroup label="URL" class="mb-4" :error="error">
+            <UInput v-model="url" type="url" placeholder="https://example.com" required :ui="{ base: 'flex-1' }"
+              size="xl" icon="i-heroicons-globe-alt" :loading="loading" :disabled="loading" color="gray"
+              @keyup.enter="analyzeUrl">
+            </UInput>
+            <UButton type="submit" :loading="loading" :disabled="loading" icon="i-heroicons-magnifying-glass"
+              color="gray" size="xl" class="cursor-pointer hover:bg-gray-100">
+              {{ loading ? 'Analyzing...' : 'Analyze' }}
+            </UButton>
+          </UFormGroup>
         </form>
+      </UCard>
 
-        <div v-if="error" class="error-message">
-            {{ error }}
-        </div>
+      <UAlert v-if="error" type="error" :title="error" icon="i-heroicons-exclamation-triangle" class="mb-8" />
 
-        <div v-if="result" class="result">
-            <h2>Analysis Results</h2>
-
-            <div class="result-section">
-                <h3>Basic Information</h3>
-                <div class="info-grid">
-                    <div class="info-item">
-                        <strong>Title:</strong>
-                        <span>{{ result.data.title }}</span>
-                    </div>
-                    <div class="info-item">
-                        <strong>Description:</strong>
-                        <span>{{ result.data.description }}</span>
-                    </div>
-                    <div class="info-item">
-                        <strong>H1:</strong>
-                        <span>{{ result.data.h1 }}</span>
-                    </div>
-                    <div class="info-item">
-                        <strong>Word Count:</strong>
-                        <span>{{ result.data.wordCount }}</span>
-                    </div>
-                </div>
+      <div v-if="results" class="space-y-8">
+        <UCard class="shadow-lg">
+          <template #header>
+            <div class="flex items-center gap-2">
+              <UIcon name="i-heroicons-information-circle" class="text-gray-600 dark:text-gray-300" />
+              <h2 class="text-xl font-semibold text-gray-900 dark:text-white">
+                Basic Information
+              </h2>
             </div>
-
-            <div class="result-section">
-                <h3>Links ({{ result.data.linkCount }} total)</h3>
-                <ul class="link-list">
-                    <li v-for="(link, index) in result.data.links" :key="index">
-                        <a :href="link.href" target="_blank" rel="noopener noreferrer">
-                            {{ link.text || link.href }}
-                        </a>
-                    </li>
-                </ul>
+          </template>
+          <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+            <div v-for="(value, key) in {
+              title: 'Title',
+              description: 'Description',
+              totalLinks: 'Total Links',
+              internalLinks: 'Internal Links',
+              externalLinks: 'External Links',
+              metaTags: 'Meta Tags'
+            }" :key="key" class="p-4 rounded-lg bg-gray-50 dark:bg-gray-800">
+              <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">
+                {{ value }}
+              </dt>
+              <dd class="mt-1 text-sm font-semibold text-gray-900 dark:text-white">
+                {{ results[key] }}
+              </dd>
             </div>
+          </div>
+        </UCard>
 
-            <div class="result-section">
-                <h3>Meta Tags</h3>
-                <div class="meta-tags">
-                    <div v-for="(tag, index) in result.data.metaTags" :key="index" class="meta-tag">
-                        <strong>{{ tag.name }}:</strong>
-                        <span>{{ tag.content }}</span>
-                    </div>
-                </div>
+        <UCard class="shadow-lg">
+          <template #header>
+            <div class="flex items-center gap-2">
+              <UIcon name="i-heroicons-envelope" class="text-gray-600 dark:text-gray-300" />
+              <h2 class="text-xl font-semibold text-gray-900 dark:text-white">
+                Email Addresses Found
+              </h2>
             </div>
-
-            <div class="result-section">
-                <h3>Images ({{ result.data.imageCount }} total)</h3>
-                <div class="image-grid">
-                    <div v-for="(image, index) in result.data.images" :key="index" class="image-item">
-                        <img :src="image.src" :alt="image.alt || 'Image'" loading="lazy" />
-                        <div class="image-alt">{{ image.alt || 'No alt text' }}</div>
-                    </div>
-                </div>
+          </template>
+          <div v-if="results.emails && results.emails.length > 0" class="space-y-2">
+            <div v-for="(email, index) in results.emails" :key="index"
+              class="flex items-center p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800">
+              <UIcon name="i-heroicons-envelope" class="text-gray-400 mr-2" />
+              <UButton :to="'mailto:' + email" variant="link" color="gray" class="text-sm">
+                {{ email }}
+              </UButton>
             </div>
-        </div>
+          </div>
+          <div v-else class="text-sm text-gray-500 dark:text-gray-400 p-4 text-center">
+            No email addresses found on this page.
+          </div>
+        </UCard>
+      </div>
     </div>
+  </UContainer>
 </template>
 
 <script setup lang="ts">
+import { ref } from 'vue'
+import { logger } from '~/utils/logger'
+
 const url = ref('')
-const isLoading = ref(false)
-const error = ref('')
-const result = ref(null)
+const loading = ref(false)
+const error = ref(null)
+const results = ref(null)
 
 const analyzeUrl = async () => {
-    if (!url.value) {
-        error.value = 'Please enter a URL'
-        return
+  logger.debug('Starting URL analysis...')
+
+  if (!url.value) {
+    logger.warn('Empty URL submitted')
+    error.value = 'Please enter a URL'
+    return
+  }
+
+  let parsedUrl
+  try {
+    parsedUrl = new URL(url.value)
+    logger.debug('URL validation successful:', {
+      protocol: parsedUrl.protocol,
+      hostname: parsedUrl.hostname,
+      path: parsedUrl.pathname
+    })
+  } catch (e) {
+    logger.warn('Invalid URL format:', url.value)
+    error.value = 'Please enter a valid URL (e.g., https://example.com)'
+    return
+  }
+
+  loading.value = true
+  error.value = null
+  results.value = null
+
+  try {
+    logger.info('Making API request to analyze URL:', url.value)
+    const response = await fetch('/api/analyze', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ url: url.value }),
+    })
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}))
+      logger.error('API request failed:', {
+        status: response.status,
+        statusText: response.statusText,
+        error: errorData
+      })
+      throw new Error(errorData.message || 'Failed to analyze URL')
     }
 
-    isLoading.value = true
-    error.value = ''
-    result.value = null
-
-    try {
-        // Validate URL format
-        try {
-            new URL(url.value)
-        } catch {
-            throw new Error('Please enter a valid URL (include http:// or https://)')
-        }
-
-        const response = await $fetch('/api/analyze-url', {
-            method: 'POST',
-            body: { url: url.value }
-        })
-        result.value = response
-    } catch (err: any) {
-        error.value = err.data?.message || err.message || 'An error occurred while analyzing the URL'
-        console.error('Error:', err)
-    } finally {
-        isLoading.value = false
-    }
+    const data = await response.json()
+    logger.info('Analysis completed successfully:', {
+      title: data.title,
+      totalLinks: data.totalLinks,
+      emailCount: data.emails?.length || 0
+    })
+    results.value = data
+  } catch (err) {
+    logger.error('Error during URL analysis:', {
+      error: err,
+      url: url.value
+    })
+    error.value = err.message || 'An error occurred while analyzing the URL'
+  } finally {
+    loading.value = false
+    logger.debug('Analysis process completed')
+  }
 }
 </script>
 
 <style scoped>
-.url-analyzer {
-    max-width: 800px;
-    margin: 0 auto;
-    padding: 2rem;
-}
-
-.url-form {
-    display: flex;
-    gap: 1rem;
-    margin-bottom: 2rem;
-}
-
-.url-input {
-    flex: 1;
-    padding: 0.5rem;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-}
-
-.submit-button {
-    padding: 0.5rem 1rem;
-    background-color: #4CAF50;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-}
-
-.submit-button:disabled {
-    background-color: #cccccc;
-    cursor: not-allowed;
-}
-
-.error-message {
-    color: #dc2626;
-    background-color: #fee2e2;
-    padding: 1rem;
-    border-radius: 0.375rem;
-    margin-bottom: 1rem;
-    border: 1px solid #fecaca;
-}
-
-.url-input:invalid {
-    border-color: #dc2626;
-}
-
-.result {
-    background-color: #f5f5f5;
-    padding: 1rem;
-    border-radius: 4px;
-}
-
-.result-section {
-    margin-bottom: 2rem;
-    padding-bottom: 1rem;
-    border-bottom: 1px solid #ddd;
-}
-
-.result-section:last-child {
-    border-bottom: none;
-}
-
-.info-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 1rem;
-}
-
-.info-item {
-    display: flex;
-    flex-direction: column;
-    gap: 0.25rem;
-}
-
-.link-list {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-}
-
-.link-list li {
-    margin-bottom: 0.5rem;
-}
-
-.link-list a {
-    color: #2196F3;
-    text-decoration: none;
-}
-
-.link-list a:hover {
-    text-decoration: underline;
-}
-
-.meta-tags {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 1rem;
-}
-
-.meta-tag {
-    display: flex;
-    flex-direction: column;
-    gap: 0.25rem;
-}
-
-.image-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-    gap: 1rem;
-}
-
-.image-item {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-}
-
-.image-item img {
-    width: 100%;
-    height: auto;
-    border-radius: 4px;
-}
-
-.image-alt {
-    font-size: 0.8rem;
-    color: #666;
-}
+/* Add any component-specific styles here */
 </style>
